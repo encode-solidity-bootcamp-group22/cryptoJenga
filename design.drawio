@@ -1,0 +1,13 @@
+<mxfile host="65bd71144e">
+    <diagram id="l02BOgSCUX2RgnCK997A" name="Page-1">
+        <mxGraphModel dx="869" dy="559" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="2" value="sequenceDiagram&#10;    participant FrontEnd&#10;    participant SmartContract&#10;    participant ChainLink&#10;&#10;    FrontEnd-&gt;&gt;+SmartContract: Start a game&#10;    SmartContract-&gt;&gt;SmartContract: constructor&#10;&#10;    Note right of SmartContract: Set the period of each round&lt;br/&gt;Emit Round 1 Started event&#10;    &#10;    SmartContract--&gt;&gt;-FrontEnd: return gameId&#10;&#10;    SmartContract --&gt;&gt; FrontEnd: Round 1 started&#10;&#10;    FrontEnd -&gt;&gt; SmartContract: place a bet&#10;    Note right of SmartContract: havePlacedBets[roundId][playerAddress] = true &lt;br/&gt;bets[roundId][playerAddress] = true&lt;br&gt;Add address to array of players&#10;    ChainLink--&gt;&gt;SmartContract: RoundEnded&#10;    SmartContract--&gt;&gt;FrontEnd: emit round end event&#10;    SmartContract-&gt;&gt;SmartContract: calculate the winner for the round" style="shadow=0;dashed=0;align=left;strokeWidth=1;shape=mxgraph.mermaid.abstract.mermaid;labelBackgroundColor=#ffffff;noLabel=1;theme=default;" parent="1" vertex="1">
+                    <mxGeometry x="190" y="100" width="400" height="300" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
