@@ -11,3 +11,6 @@ artifacts
 #db and upload folders
 Week4/db
 Week4/upload
+
+#game
+NodeServerV2/node_modules
