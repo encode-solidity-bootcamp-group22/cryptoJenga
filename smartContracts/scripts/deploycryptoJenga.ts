@@ -20,6 +20,12 @@ async function  deployCryptoJengaContract(
   ticketPriceInUSD: number
 ) 
 {
+  const GAS_OPTIONS = {
+    maxFeePerGas: 60 * 10 ** 9,
+    maxPriorityFeePerGas: 60 * 10 ** 9,
+  };
+
+
   const provider = ethers.providers.getDefaultProvider("rinkeby");
   const signer = signerWallet.connect(provider);
   const balanceBN = await signer.getBalance();
@@ -28,8 +34,10 @@ async function  deployCryptoJengaContract(
   if (balance < 0.01) {
     throw new Error("Not enough ether");
   }
-  
+
+  console.log("");
   console.log("======Deploying CryptoJenga contract======");
+  console.log("");
   
   const cryptoJengaFactory = new ethers.ContractFactory(
     cryptoJengaJson.abi,
@@ -42,7 +50,8 @@ async function  deployCryptoJengaContract(
     vrfCoordinator,
     ethers.utils.parseEther(linkFee.toFixed(18)),
     keyhash,
-    ethers.utils.parseEther(ticketPriceInUSD.toFixed(18))
+    ethers.utils.parseEther(ticketPriceInUSD.toFixed(18)),
+    GAS_OPTIONS
   )) as CryptoJenga;
   
   console.log("Awaiting confirmations");
