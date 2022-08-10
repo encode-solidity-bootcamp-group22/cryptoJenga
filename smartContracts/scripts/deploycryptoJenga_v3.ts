@@ -50,7 +50,9 @@ async function  deployCryptoJengaContract(
     vrfCoordinator,
     ethers.utils.parseEther(linkFee.toFixed(18)),
     keyhash,
-    ethers.utils.parseEther(ticketPriceInUSD.toFixed(18))
+    ethers.utils.parseEther(ticketPriceInUSD.toFixed(18)),
+    10*60, // round duration 10 mins
+    5*60, // reveal duration 5 mins
    // GAS_OPTIONS
   )) as CryptoJengav3;
   

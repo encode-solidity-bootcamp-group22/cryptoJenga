@@ -19,6 +19,8 @@ contract cryptoJengav3 is VRFConsumerBase, Ownable {
     LinkTokenInterface LINKTOKEN;
     address link_token_contract = 0x01BE23585060835E02B77ef475b0Cc51aA1e0709;
     uint256 public RoundStartTime;
+    uint256 RoundDuration; // in seconds
+    uint256 RevealDuration; // in seconds
 
     using ECDSA for bytes32;
     mapping(uint256 => mapping(uint256 => mapping ( address => bool))) placedBet; 
@@ -27,7 +29,7 @@ contract cryptoJengav3 is VRFConsumerBase, Ownable {
     struct Bet {
         uint256 betAmount;
         Signature betSignature;
-        string betString;
+        AvailableChoice bet;
     }
 
     struct Signature {
@@ -37,36 +39,57 @@ contract cryptoJengav3 is VRFConsumerBase, Ownable {
     }
 
     enum GAME_STATE {
+        INITIALIZED,
         OPEN,
+        REVEAL,
         CLOSED,
+        CHOOSEROUNDWINNER,
         CALCULATING_WINNER
     }
-    //0
-    //1
-    //2
+
+    enum AvailableChoice {
+        Pizza,
+        Cake,
+        Sandwich,
+        Sausage,
+        Pancake,
+        HotDog,
+        MacAndCheese,
+        Invalid
+    }
+
     GAME_STATE public game_state;
     uint256 public LinkFee;
     bytes32 public keyhash;
     event RequestedRandomness(bytes32 requestId);
     event BetMade(address _player, uint256 _EthTicketPrice);
     event GameState(string _currentState);
+    event RoundStarted(uint256 _currentRoundNumber);
+    event RoundEnded(uint256 _currentRoundNumber);
+    event RevealStarted(uint256 _currentRoundNumber);
+    event RevealEnded(uint256 _currentRoundNumber);
 
     constructor(
         address _priceFeedAddress,
         address _vrfCoordinator,
         uint256 _fee,
         bytes32 _keyhash,
-        uint256 _USDTicketPrice
+        uint256 _USDTicketPrice,
+        uint256 _RoundDuration,
+        uint256 _RevealDuration
     ) VRFConsumerBase(_vrfCoordinator, link_token_contract){
         USDTicketPrice = _USDTicketPrice;
         ethUsdPriceFeed = AggregatorV3Interface(_priceFeedAddress);
         //* Network: Rinkeby
         //* Aggregator: ETH/USD
         //* _priceFeedAddress= 0x8A753747A1Fa494EC906cE90E9f37563A8AF630e
-        game_state = GAME_STATE.CLOSED;
+        game_state = GAME_STATE.INITIALIZED;
         LinkFee = _fee;
         keyhash = _keyhash;
         LINKTOKEN = LinkTokenInterface(link_token_contract);
+
+        RoundDuration = _RoundDuration;
+        RevealDuration = _RevealDuration;
 
         //fee = 100000000000000000 (0.1 Link) 
         //US TicketPrice = 30000000000000000000 ($30)
@@ -75,8 +98,8 @@ contract cryptoJengav3 is VRFConsumerBase, Ownable {
 
     }
     function bet(        
-        //uint256 gameId,
-        //uint256 roundNumber,
+        uint256 gameId,
+        uint256 roundNumber,
         uint8 _v,
         bytes32 _r,
         bytes32 _s,
@@ -84,24 +107,24 @@ contract cryptoJengav3 is VRFConsumerBase, Ownable {
     ) public payable {
         require(game_state==GAME_STATE.OPEN);
         require(betAmount >= TicketPrice(), "Not enough ETH");
-        require(block.timestamp - RoundStartTime < 12 minutes, "You are too late for this round");
-        require(placedBet[1][1][msg.sender] == false, "You already place bet in this round");
+        require( (block.timestamp - RoundStartTime) < RoundDuration, "You are too late for this round");
+        require(placedBet[gameId][roundNumber][msg.sender] == false, "You already place bet in this round");
 
-        placedBet[1][1][msg.sender] = true;
-        bets[1][1][msg.sender] = Bet({betAmount: msg.value, betSignature: Signature({v: _v, r: _r, s: _s}), betString: ""});
+        placedBet[gameId][roundNumber][msg.sender] = true;
+        bets[gameId][roundNumber][msg.sender] = Bet({betAmount: msg.value, betSignature: Signature({v: _v, r: _r, s: _s}), betString: ""});
 
         players.push(payable(msg.sender));
         emit BetMade(msg.sender, betAmount);
     }
 
     function revealBet (
-        //uint256 gameId,
-        //uint256 roundNumber,
+        uint256 gameId,
+        uint256 roundNumber,
         string calldata betString
     ) public {
-        require(placedBet[1][1][msg.sender] == true, "You didn't place bet in this round");
+        require(placedBet[gameId][roundNumber][msg.sender] == true, "You didn't place bet in this round");
 
-        Bet storage myBet = bets[1][1][msg.sender];
+        Bet storage myBet = bets[gameId][roundNumber][msg.sender];
         address messageSigner = verifyString(
             betString,
             myBet.betSignature.v,
@@ -109,8 +132,38 @@ contract cryptoJengav3 is VRFConsumerBase, Ownable {
             myBet.betSignature.s
         );
         require(msg.sender == messageSigner, "Invalid seed");
-            
-        myBet.betString = betString;
+        
+        if (keccak256(abi.encodePacked((betString))) == keccak256(abi.encodePacked(("Pizza"))))
+        {
+            myBet.bet = AvailableChoice.Pizza;
+        } 
+        else if (keccak256(abi.encodePacked((betString))) == keccak256(abi.encodePacked(("Cake"))))
+        {
+            myBet.bet = AvailableChoice.Cake;
+        }
+        else if (keccak256(abi.encodePacked((betString))) == keccak256(abi.encodePacked(("Sandwich"))))
+        {
+            myBet.bet = AvailableChoice.Sandwich;
+        }
+        else if (keccak256(abi.encodePacked((betString))) == keccak256(abi.encodePacked(("Sausage"))))
+        {
+            myBet.bet = AvailableChoice.Sausage;
+        }
+        else if (keccak256(abi.encodePacked((betString))) == keccak256(abi.encodePacked(("Pancake"))))
+        {
+            myBet.bet = AvailableChoice.Pancake;
+        }
+        else if (keccak256(abi.encodePacked((betString))) == keccak256(abi.encodePacked(("HotDog"))))
+        {
+            myBet.bet = AvailableChoice.HotDog;
+        }
+        else if (keccak256(abi.encodePacked((betString))) == keccak256(abi.encodePacked(("MacAndCheese"))))
+        {
+            myBet.bet = AvailableChoice.MacAndCheese;
+        } 
+        else {
+            myBet.bet = AvailableChoice.Invalid;
+        }
     }
 
     function TicketPrice() public view returns (uint256){
@@ -121,19 +174,33 @@ contract cryptoJengav3 is VRFConsumerBase, Ownable {
     }
 
     function startGame() public onlyOwner {
-        require(game_state == GAME_STATE.CLOSED, "Can't start a new game");
+        require(game_state == GAME_STATE.INITIALIZED, "Can't start a new game");
         game_state = GAME_STATE.OPEN;
         RoundStartTime = block.timestamp;
         emit GameState("Open");
+        emit RoundStarted(1);
     }
 
     function endGame() public {
         require(players.length > 1, "Must have at least 2 players");
-        require(block.timestamp > RoundStartTime + 15 minutes, "Must wait to end game");
+        require( (block.timestamp - RoundStartTime) < (RoundDuration + RevealDuration), "Must wait to end game");
         game_state = GAME_STATE.CALCULATING_WINNER;
         bytes32 requestId = requestRandomness(keyhash, LinkFee);
         emit RequestedRandomness(requestId);
         emit GameState("Calculating winner");
+    }
+
+    function choiceWinnerForCurrentRound() public {
+        require(
+            game_state == GAME_STATE.REVEAL,
+            "You aren't there yet!"
+        );
+        game_state = GAME_STATE.CHOOSEROUNDWINNER;
+        bytes32 requestId = requestRandomness(keyhash, LinkFee);
+        emit RequestedRandomness(requestId);
+        emit GameState("Calculating winner");
+        emit RoundEnded(1);
+        emit RevealStarted(1);
     }
 
     function fulfillRandomness(bytes32, uint256 _randomness)
@@ -141,17 +208,19 @@ contract cryptoJengav3 is VRFConsumerBase, Ownable {
         override
     {
         require(
-            game_state == GAME_STATE.CALCULATING_WINNER,
+            game_state == GAME_STATE.CHOOSEROUNDWINNER,
             "You aren't there yet!"
         );
         require(_randomness > 0, "random-not-found");
         uint256 indexOfWinner = _randomness % players.length;
+        uint256 winnderChoice = _randomness % uint256(AvailableChoice.Invalid);
         recentWinner = players[indexOfWinner];
         recentWinner.transfer(address(this).balance * 90/100);
         // Reset
         players = new address payable[](0);
         game_state = GAME_STATE.CLOSED;
         randomness = _randomness;
+        emit RevealEnded(1);
         emit GameState("Closed");
     }
 
@@ -216,5 +285,24 @@ contract cryptoJengav3 is VRFConsumerBase, Ownable {
         }
         bytes32 check = keccak256(abi.encodePacked(header, message));
         return ecrecover(check, v, r, s);
+    }
+
+    function checkUpkeep(bytes calldata /* checkData */) external view returns (bool upkeepNeeded, bytes memory /* performData */) {
+        upkeepNeeded = ( (game_state == GAME_STATE.OPEN && (block.timestamp - RoundStartTime) > RoundDuration)
+                            || (game_state == GAME_STATE.REVEAL && (block.timestamp - RoundStartTime) > (RoundDuration + RevealDuration))
+        );
+        // We don't use the checkData in this example. The checkData is defined when the Upkeep was registered.
+    }
+
+    function performUpkeep(bytes calldata /* performData */) external {
+        //We highly recommend revalidating the upkeep in the performUpkeep function
+        if (game_state == GAME_STATE.OPEN && (block.timestamp - RoundStartTime) > RoundDuration ) {
+            game_state = GAME_STATE.REVEAL;
+        }
+
+        if (game_state == GAME_STATE.REVEAL && (block.timestamp - RoundStartTime) > (RoundDuration + RevealDuration))
+        {
+            choiceWinnerForCurrentRound();
+        }
     }
 }
