@@ -354,4 +354,12 @@ contract cryptoJengav3 is VRFConsumerBase, Ownable {
             choiceWinnerForCurrentRound();
         }
     }
+
+    function getRoundRemainingTime() external view returns (uint256){
+        if (( RoundStartTime + RoundDuration) < block.timestamp) 
+        {
+            return 0;
+        }
+        return ( RoundStartTime + RoundDuration) - block.timestamp;
+    }
 }

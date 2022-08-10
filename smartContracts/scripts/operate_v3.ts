@@ -80,14 +80,19 @@ async function main()
     console.log(`Place bet transaction ${tx.hash}; confirmed.`)
 
     // withdraw the fund
+    console.log("Withdraw fund ...");
     tx = await gameContractForOwner.withdrawEth();
     await tx.wait(1);
 
     // reveal the bet
+    console.log("Revealing bet ...");
     tx = await gameContractForOwner.revealBet(1, 1, "Pizza");
     console.log(`Reveal bet transaction ${tx.hash}; waiting for confirmation.`)
     await tx.wait(1);
     console.log(`Reveal bet transaction ${tx.hash}; confirmed.`)
+
+    let roundRemainingTime = await gameContractForOwner.getRoundRemainingTime();
+    console.log(`Round remaining time: ${roundRemainingTime.toNumber()}`);
 
     // second player to place bet
     const secondSigner = secondSignerWallet.connect(provider);
@@ -102,10 +107,12 @@ async function main()
     console.log(`Place bet transaction ${tx.hash}; confirmed.`)
 
     // withdraw the fund
+    console.log("Withdraw fund ...");
     tx = await gameContractForOwner.connect(ownerSigner).withdrawEth();
     await tx.wait(1);
 
     // reveal the bet
+    console.log("Revealing bet ...");
     tx = await gameContractForOwner.connect(secondSigner).revealBet(1, 1, "Cake");
     console.log(`Reveal bet transaction ${tx.hash}; waiting for confirmation.`)
     await tx.wait(1);
