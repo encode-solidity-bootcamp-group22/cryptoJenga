@@ -71,7 +71,7 @@ contract cryptoJengaV4 is VRFConsumerBase, Ownable {
     event RoundEnded(uint256 _currentRoundNumber);
     event RevealStarted(uint256 _currentRoundNumber);
     event RevealEnded(uint256 _currentRoundNumber);
-    event GameEdned(address _gameWinner);
+    event GameEdned(address _gameWinner, uint256 amountWon);
 
     constructor(
         address _priceFeedAddress,
@@ -264,7 +264,7 @@ contract cryptoJengaV4 is VRFConsumerBase, Ownable {
 
             emit RevealEnded(CurrentRound);
             emit GameState("Closed");
-            emit GameEdned(gameWinner);
+            emit GameEdned(gameWinner, GameWinningPool[1]);
         } 
         else
         {
