@@ -1,7 +1,7 @@
 import { ethers, Signer } from "ethers";
 import "dotenv/config";
-import * as cryptoJengaJson from "../artifacts/contracts/cryptoJenga_v3.sol/cryptoJengav3.json";
-import {CryptoJengav3} from "../typechain-types";
+import * as cryptoJengaJson from "../artifacts/contracts/cryptoJenga_v4.sol/cryptoJengaV4.json";
+import {CryptoJengaV4} from "../typechain-types";
 
 function convertStringArrayToBytes32(array: string[]) {
   const bytes32Array = [];
@@ -36,7 +36,7 @@ async function  deployCryptoJengaContract(
   }
 
   console.log("");
-  console.log("======Deploying CryptoJenga V3 contract======");
+  console.log("======Deploying CryptoJenga V4 contract======");
   console.log("");
   
   const cryptoJengaFactory = new ethers.ContractFactory(
@@ -52,10 +52,9 @@ async function  deployCryptoJengaContract(
     keyhash,
     ethers.utils.parseEther(ticketPriceInUSD.toFixed(18)),
     10*60, // round duration 10 mins
-    5*60, // reveal duration 5 mins
     3 // number of round
    // GAS_OPTIONS
-  )) as CryptoJengav3;
+  )) as CryptoJengaV4;
   
   console.log("Awaiting confirmations");
   await cryptoJengaContract.deployed();

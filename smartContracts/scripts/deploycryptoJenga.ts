@@ -36,7 +36,7 @@ async function  deployCryptoJengaContract(
   }
 
   console.log("");
-  console.log("======Deploying CryptoJenga contract======");
+  console.log("======Deploying CryptoJenga V2 contract======");
   console.log("");
   
   const cryptoJengaFactory = new ethers.ContractFactory(
