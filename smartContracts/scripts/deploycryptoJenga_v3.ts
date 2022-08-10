@@ -53,6 +53,7 @@ async function  deployCryptoJengaContract(
     ethers.utils.parseEther(ticketPriceInUSD.toFixed(18)),
     10*60, // round duration 10 mins
     5*60, // reveal duration 5 mins
+    3 // number of round
    // GAS_OPTIONS
   )) as CryptoJengav3;
   

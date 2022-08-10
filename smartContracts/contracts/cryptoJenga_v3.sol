@@ -3,9 +3,10 @@ pragma solidity ^0.8.0;
 
 import "@chainlink/contracts/src/v0.8/interfaces/LinkTokenInterface.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "@chainlink/contracts/src/v0.8/VRFConsumerBase.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
 
 
 
@@ -22,11 +23,16 @@ contract cryptoJengav3 is VRFConsumerBase, Ownable {
     uint256 public RoundStartTime;
     uint256 RoundDuration; // in seconds
     uint256 RevealDuration; // in seconds
+    uint256 TotalRounds;
+    uint256 CurrentRound;
 
     using ECDSA for bytes32;
     mapping(uint256 => mapping(uint256 => mapping ( address => bool))) placedBet; 
     mapping(uint256 => mapping(uint256 => mapping ( address => Bet))) bets; //bets[gameId][roundNumber][playerAddress]
     mapping(address=>uint256) blocksWon;
+
+    mapping(uint256 => uint256) GameWinningPool; //gameId => amount
+    mapping(uint256 => uint256) GameFeePool; // gameId => amount
 
     struct Bet {
         uint256 betAmount;
@@ -77,8 +83,9 @@ contract cryptoJengav3 is VRFConsumerBase, Ownable {
         uint256 _fee,
         bytes32 _keyhash,
         uint256 _USDTicketPrice,
-        uint256 _RoundDuration,
-        uint256 _RevealDuration
+        uint256 _roundDuration,
+        uint256 _revealDuration,
+        uint256 _totalRounds
     ) VRFConsumerBase(_vrfCoordinator, link_token_contract){
         USDTicketPrice = _USDTicketPrice;
         ethUsdPriceFeed = AggregatorV3Interface(_priceFeedAddress);
@@ -90,8 +97,9 @@ contract cryptoJengav3 is VRFConsumerBase, Ownable {
         keyhash = _keyhash;
         LINKTOKEN = LinkTokenInterface(link_token_contract);
 
-        RoundDuration = _RoundDuration;
-        RevealDuration = _RevealDuration;
+        RoundDuration = _roundDuration;
+        RevealDuration = _revealDuration;
+        TotalRounds = _totalRounds;
 
         //fee = 100000000000000000 (0.1 Link) 
         //US TicketPrice = 30000000000000000000 ($30)
@@ -114,8 +122,21 @@ contract cryptoJengav3 is VRFConsumerBase, Ownable {
         placedBet[gameId][roundNumber][msg.sender] = true;
         bets[gameId][roundNumber][msg.sender] = Bet({betAmount: msg.value, betSignature: Signature({v: _v, r: _r, s: _s}), choiceBet: AvailableChoice.Invalid});
 
+        uint256 amountGotoWinningPool = msg.value * 90 / 100;
+        GameWinningPool[gameId] += amountGotoWinningPool;
+        GameFeePool[gameId] += (msg.value - amountGotoWinningPool);
+
         players.push(payable(msg.sender));
         emit BetMade(msg.sender, msg.value);
+    }
+
+    function startGame() public onlyOwner {
+        require(game_state == GAME_STATE.INITIALIZED, "Can't start a new game");
+        game_state = GAME_STATE.OPEN;
+        RoundStartTime = block.timestamp;
+        CurrentRound = 1;
+        emit GameState("Open");
+        emit RoundStarted(CurrentRound);
     }
 
     function revealBet (
@@ -174,14 +195,6 @@ contract cryptoJengav3 is VRFConsumerBase, Ownable {
         return costToEnter;
     }
 
-    function startGame() public onlyOwner {
-        require(game_state == GAME_STATE.INITIALIZED, "Can't start a new game");
-        game_state = GAME_STATE.OPEN;
-        RoundStartTime = block.timestamp;
-        emit GameState("Open");
-        emit RoundStarted(1);
-    }
-
     function endGame() public {
         require(players.length > 1, "Must have at least 2 players");
         require( (block.timestamp - RoundStartTime) < (RoundDuration + RevealDuration), "Must wait to end game");
@@ -236,15 +249,28 @@ contract cryptoJengav3 is VRFConsumerBase, Ownable {
                 blocksWon[winningPlayers[i]] += award;
             }
         }
-        //recentWinner.transfer(address(this).balance * 90/100);
+
         // Reset
         players = new address payable[](0);
         winningPlayers = new address payable[](0);
 
-        game_state = GAME_STATE.CLOSED;
-        randomness = _randomness;
-        emit RevealEnded(1);
-        emit GameState("Closed");
+        if ( CurrentRound == TotalRounds)
+        {
+            // End the game
+            game_state = GAME_STATE.CLOSED;
+            randomness = _randomness;
+            emit RevealEnded(1);
+            emit GameState("Closed");
+        } 
+        else
+        {
+            // start new round
+            CurrentRound += 1;
+            RoundStartTime = block.timestamp;
+            game_state = GAME_STATE.OPEN;
+            emit RoundStarted(CurrentRound);
+        } 
+        
     }
 
     function getLinkBalance() external view returns (uint256){
