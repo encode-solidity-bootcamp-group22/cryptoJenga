@@ -26,7 +26,7 @@ contract cryptoJengaV4 is VRFConsumerBase, Ownable {
 
     using ECDSA for bytes32;
     mapping(uint256 => mapping(uint256 => mapping ( address => bool))) placedBet; 
-    mapping(uint256 => mapping(uint256 => mapping ( address => Bet))) bets; //bets[gameId][roundNumber][playerAddress]
+    mapping(uint256 => mapping(uint256 => mapping ( address => Bet[]))) bets; //bets[gameId][roundNumber][playerAddress]
     mapping(address=>uint256) blocksWon;
 
     mapping(uint256 => uint256) GameWinningPool; //gameId => amount
@@ -109,7 +109,6 @@ contract cryptoJengaV4 is VRFConsumerBase, Ownable {
         require(game_state==GAME_STATE.OPEN);
         require(msg.value >= TicketPrice(), "Not enough ETH");
         require( (block.timestamp - RoundStartTime) < RoundDuration, "You are too late for this round");
-        require(placedBet[gameId][roundNumber][msg.sender] == false, "You already place bet in this round");
 
         if ( ! participated[msg.sender])
         {
@@ -118,7 +117,7 @@ contract cryptoJengaV4 is VRFConsumerBase, Ownable {
         }
 
         placedBet[gameId][roundNumber][msg.sender] = true;
-        bets[gameId][roundNumber][msg.sender] = Bet({betAmount: msg.value, choiceBet: getAvailableChoiceFromString(betString)});
+        (bets[gameId][roundNumber][msg.sender]).push(Bet({betAmount: msg.value, choiceBet: getAvailableChoiceFromString(betString)}));
 
         uint256 amountGotoWinningPool = msg.value * 90 / 100;
         GameWinningPool[gameId] += amountGotoWinningPool;
@@ -222,9 +221,13 @@ contract cryptoJengaV4 is VRFConsumerBase, Ownable {
 
         for (uint i=0; i < numberOfPlayers; i++)
         {
-            if ((uint256)(bets[1][1][players[i]].choiceBet) == winnderChoice)
+            Bet[] memory betsForPlayer = bets[1][1][players[i]];
+            for (uint j = 0; j < betsForPlayer.length; j ++)
             {
-                winningPlayers.push(players[i]);
+                if ((uint256)(betsForPlayer[j].choiceBet) == winnderChoice)
+                {
+                    winningPlayers.push(players[i]);
+                }
             }
         }
         

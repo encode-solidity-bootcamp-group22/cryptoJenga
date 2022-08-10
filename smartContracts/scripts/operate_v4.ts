@@ -72,9 +72,14 @@ async function main()
     console.log(`Place bet with 0.03 Ether ...`);
     
     tx = await gameContractForOwner.bet(1, 1, "Pizza", {value:ethers.utils.parseEther("0.03")});
-    console.log(`Place bet transaction ${tx.hash}; waiting for confirmation.`)
+    console.log(`Place bet Pizza transaction ${tx.hash}; waiting for confirmation.`)
     await tx.wait(1);
-    console.log(`Place bet transaction ${tx.hash}; confirmed.`)
+    console.log(`Place bet Pizza transaction ${tx.hash}; confirmed.`)
+
+    tx = await gameContractForOwner.bet(1, 1, "MacAndCheese", {value:ethers.utils.parseEther("0.03")});
+    console.log(`Place bet MacAndCheese transaction ${tx.hash}; waiting for confirmation.`)
+    await tx.wait(1);
+    console.log(`Place bet MacAndCheese transaction ${tx.hash}; confirmed.`)
 
     // withdraw the fund
     console.log("Withdraw fund ...");
@@ -89,9 +94,9 @@ async function main()
 
     console.log("Second player place bet with 0.03 Ether ...");
     tx = await gameContractForOwner.connect(secondSigner).bet(1, 1, "Cake", {value:ethers.utils.parseEther("0.03")});
-    console.log(`Place bet transaction ${tx.hash}; waiting for confirmation.`)
+    console.log(`Place bet Cake transaction ${tx.hash}; waiting for confirmation.`)
     await tx.wait(1);
-    console.log(`Place bet transaction ${tx.hash}; confirmed.`)
+    console.log(`Place bet Cake transaction ${tx.hash}; confirmed.`)
 
     // withdraw the fund
     console.log("Withdraw fund ...");
