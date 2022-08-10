@@ -1,7 +1,7 @@
 import { ethers, Signer } from "ethers";
 import "dotenv/config";
-import * as cryptoJengaJson from "../artifacts/contracts/cryptoJenga_v2.sol/cryptoJenga.json";
-import {CryptoJenga} from "../typechain-types";
+import * as cryptoJengaJson from "../artifacts/contracts/cryptoJenga_v3.sol/cryptoJengav3.json";
+import {CryptoJengav3} from "../typechain-types";
 
 function convertStringArrayToBytes32(array: string[]) {
   const bytes32Array = [];
@@ -50,15 +50,15 @@ async function  deployCryptoJengaContract(
     vrfCoordinator,
     ethers.utils.parseEther(linkFee.toFixed(18)),
     keyhash,
-    ethers.utils.parseEther(ticketPriceInUSD.toFixed(18))//,
-    //GAS_OPTIONS
-  )) as CryptoJenga;
+    ethers.utils.parseEther(ticketPriceInUSD.toFixed(18))
+   // GAS_OPTIONS
+  )) as CryptoJengav3;
   
   console.log("Awaiting confirmations");
   await cryptoJengaContract.deployed();
 
   console.log("Completed");
-  console.log(`CryptoJenga Contract deployed at ${cryptoJengaContract.address}`);
+  console.log(`Custom Ballot Contract deployed at ${cryptoJengaContract.address}`);
 
   return cryptoJengaContract.address;
 }
