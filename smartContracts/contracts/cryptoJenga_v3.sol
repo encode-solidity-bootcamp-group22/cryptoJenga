@@ -13,6 +13,7 @@ contract cryptoJengav3 is VRFConsumerBase, Ownable {
 
     uint256 public USDTicketPrice;
     address payable[] players;
+    address payable[] winningPlayers;
     address payable public recentWinner;
     uint256 public randomness;
     AggregatorV3Interface internal ethUsdPriceFeed;
@@ -25,11 +26,12 @@ contract cryptoJengav3 is VRFConsumerBase, Ownable {
     using ECDSA for bytes32;
     mapping(uint256 => mapping(uint256 => mapping ( address => bool))) placedBet; 
     mapping(uint256 => mapping(uint256 => mapping ( address => Bet))) bets; //bets[gameId][roundNumber][playerAddress]
+    mapping(address=>uint256) blocksWon;
 
     struct Bet {
         uint256 betAmount;
         Signature betSignature;
-        AvailableChoice bet;
+        AvailableChoice choiceBet;
     }
 
     struct Signature {
@@ -111,7 +113,7 @@ contract cryptoJengav3 is VRFConsumerBase, Ownable {
         require(placedBet[gameId][roundNumber][msg.sender] == false, "You already place bet in this round");
 
         placedBet[gameId][roundNumber][msg.sender] = true;
-        bets[gameId][roundNumber][msg.sender] = Bet({betAmount: msg.value, betSignature: Signature({v: _v, r: _r, s: _s}), betString: ""});
+        bets[gameId][roundNumber][msg.sender] = Bet({betAmount: msg.value, betSignature: Signature({v: _v, r: _r, s: _s}), choiceBet: AvailableChoice.Invalid});
 
         players.push(payable(msg.sender));
         emit BetMade(msg.sender, betAmount);
@@ -135,34 +137,34 @@ contract cryptoJengav3 is VRFConsumerBase, Ownable {
         
         if (keccak256(abi.encodePacked((betString))) == keccak256(abi.encodePacked(("Pizza"))))
         {
-            myBet.bet = AvailableChoice.Pizza;
+            myBet.choiceBet = AvailableChoice.Pizza;
         } 
         else if (keccak256(abi.encodePacked((betString))) == keccak256(abi.encodePacked(("Cake"))))
         {
-            myBet.bet = AvailableChoice.Cake;
+            myBet.choiceBet = AvailableChoice.Cake;
         }
         else if (keccak256(abi.encodePacked((betString))) == keccak256(abi.encodePacked(("Sandwich"))))
         {
-            myBet.bet = AvailableChoice.Sandwich;
+            myBet.choiceBet = AvailableChoice.Sandwich;
         }
         else if (keccak256(abi.encodePacked((betString))) == keccak256(abi.encodePacked(("Sausage"))))
         {
-            myBet.bet = AvailableChoice.Sausage;
+            myBet.choiceBet = AvailableChoice.Sausage;
         }
         else if (keccak256(abi.encodePacked((betString))) == keccak256(abi.encodePacked(("Pancake"))))
         {
-            myBet.bet = AvailableChoice.Pancake;
+            myBet.choiceBet = AvailableChoice.Pancake;
         }
         else if (keccak256(abi.encodePacked((betString))) == keccak256(abi.encodePacked(("HotDog"))))
         {
-            myBet.bet = AvailableChoice.HotDog;
+            myBet.choiceBet = AvailableChoice.HotDog;
         }
         else if (keccak256(abi.encodePacked((betString))) == keccak256(abi.encodePacked(("MacAndCheese"))))
         {
-            myBet.bet = AvailableChoice.MacAndCheese;
+            myBet.choiceBet = AvailableChoice.MacAndCheese;
         } 
         else {
-            myBet.bet = AvailableChoice.Invalid;
+            myBet.choiceBet = AvailableChoice.Invalid;
         }
     }
 
@@ -212,12 +214,34 @@ contract cryptoJengav3 is VRFConsumerBase, Ownable {
             "You aren't there yet!"
         );
         require(_randomness > 0, "random-not-found");
-        uint256 indexOfWinner = _randomness % players.length;
+
+        uint numberOfPlayers = players.length;
+        uint256 indexOfWinner = _randomness % numberOfPlayers;
         uint256 winnderChoice = _randomness % uint256(AvailableChoice.Invalid);
-        recentWinner = players[indexOfWinner];
-        recentWinner.transfer(address(this).balance * 90/100);
+
+        for (uint i=0; i < numberOfPlayers; i++)
+        {
+            if ((uint256)(bets[1][1][players[i]].choiceBet) == winnderChoice)
+            {
+                winningPlayers.push(players[i]);
+            }
+        }
+        
+        if (winningPlayers.length == 0)
+        {
+            blocksWon[players[indexOfWinner]] += 1;
+        } else {
+            uint award = (10*players.length)/winningPlayers.length;
+            for (uint i=0; i < winningPlayers.length; i++)
+            {
+                blocksWon[winningPlayers[i]] += award;
+            }
+        }
+        //recentWinner.transfer(address(this).balance * 90/100);
         // Reset
         players = new address payable[](0);
+        winningPlayers = new address payable[](0);
+
         game_state = GAME_STATE.CLOSED;
         randomness = _randomness;
         emit RevealEnded(1);
