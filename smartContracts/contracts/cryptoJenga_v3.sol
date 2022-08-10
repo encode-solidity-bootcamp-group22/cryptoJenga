@@ -104,11 +104,10 @@ contract cryptoJengav3 is VRFConsumerBase, Ownable {
         uint256 roundNumber,
         uint8 _v,
         bytes32 _r,
-        bytes32 _s,
-        uint256 betAmount
+        bytes32 _s
     ) public payable {
         require(game_state==GAME_STATE.OPEN);
-        require(betAmount >= TicketPrice(), "Not enough ETH");
+        require(msg.value >= TicketPrice(), "Not enough ETH");
         require( (block.timestamp - RoundStartTime) < RoundDuration, "You are too late for this round");
         require(placedBet[gameId][roundNumber][msg.sender] == false, "You already place bet in this round");
 
@@ -116,7 +115,7 @@ contract cryptoJengav3 is VRFConsumerBase, Ownable {
         bets[gameId][roundNumber][msg.sender] = Bet({betAmount: msg.value, betSignature: Signature({v: _v, r: _r, s: _s}), choiceBet: AvailableChoice.Invalid});
 
         players.push(payable(msg.sender));
-        emit BetMade(msg.sender, betAmount);
+        emit BetMade(msg.sender, msg.value);
     }
 
     function revealBet (

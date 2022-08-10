@@ -74,7 +74,7 @@ async function main()
     const sig = ethers.utils.splitSignature(signedMessage);
     console.log(`Place bet with 0.03 Ether ... sig.s: ${sig.s}`);
     
-    tx = await gameContractForOwner.bet(1, 1, sig.v, sig.r, sig.s, ethers.utils.parseEther("0.03"));
+    tx = await gameContractForOwner.bet(1, 1, sig.v, sig.r, sig.s, {value:ethers.utils.parseEther("0.03")});
     console.log(`Place bet transaction ${tx.hash}; waiting for confirmation.`)
     await tx.wait(1);
     console.log(`Place bet transaction ${tx.hash}; confirmed.`)
@@ -96,7 +96,7 @@ async function main()
     const sig2 = ethers.utils.splitSignature(signedMessage2);
 
     console.log("Second player place bet with 0.03 Ether ...");
-    tx = await gameContractForOwner.connect(secondSigner).bet(1, 1, sig2.v, sig2.r, sig2.s, ethers.utils.parseEther("0.03"));
+    tx = await gameContractForOwner.connect(secondSigner).bet(1, 1, sig2.v, sig2.r, sig2.s, {value:ethers.utils.parseEther("0.03")});
     console.log(`Place bet transaction ${tx.hash}; waiting for confirmation.`)
     await tx.wait(1);
     console.log(`Place bet transaction ${tx.hash}; confirmed.`)
