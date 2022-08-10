@@ -108,6 +108,11 @@ async function main()
     const players = await gameContractForOwner.getNumberofPlayers();
     console.log(`Number of players: ${players.toNumber()}`);
 
+    // get the participants address
+    console.log("getting participants address");
+    const playerAddress = await gameContractForOwner.getPlayerAddresses();
+    console.log(`Number of players: ${playerAddress[0]}`);
+
     exit;
 
   }

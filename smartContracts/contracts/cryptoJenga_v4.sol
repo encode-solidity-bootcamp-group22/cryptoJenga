@@ -318,4 +318,8 @@ contract cryptoJengaV4 is VRFConsumerBase, Ownable {
         }
         return ( RoundStartTime + RoundDuration) - block.timestamp;
     }
+
+    function getPlayerAddresses()public view returns( address payable [] memory){
+        return participants;
+    }
 }
