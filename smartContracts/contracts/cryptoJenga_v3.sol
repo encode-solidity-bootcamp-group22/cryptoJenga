@@ -15,7 +15,6 @@ contract cryptoJengav3 is VRFConsumerBase, Ownable {
     uint256 public USDTicketPrice;
     address payable[] players;
     address payable[] winningPlayers;
-    address payable public recentWinner;
     uint256 public randomness;
     AggregatorV3Interface internal ethUsdPriceFeed;
     LinkTokenInterface LINKTOKEN;
@@ -33,6 +32,11 @@ contract cryptoJengav3 is VRFConsumerBase, Ownable {
 
     mapping(uint256 => uint256) GameWinningPool; //gameId => amount
     mapping(uint256 => uint256) GameFeePool; // gameId => amount
+
+    address payable [] participants;
+    mapping(address => bool) participated;
+    address payable public gameWinner;
+
 
     struct Bet {
         uint256 betAmount;
@@ -76,6 +80,7 @@ contract cryptoJengav3 is VRFConsumerBase, Ownable {
     event RoundEnded(uint256 _currentRoundNumber);
     event RevealStarted(uint256 _currentRoundNumber);
     event RevealEnded(uint256 _currentRoundNumber);
+    event GameEdned(address _gameWinner);
 
     constructor(
         address _priceFeedAddress,
@@ -118,6 +123,12 @@ contract cryptoJengav3 is VRFConsumerBase, Ownable {
         require(msg.value >= TicketPrice(), "Not enough ETH");
         require( (block.timestamp - RoundStartTime) < RoundDuration, "You are too late for this round");
         require(placedBet[gameId][roundNumber][msg.sender] == false, "You already place bet in this round");
+
+        if ( ! participated[msg.sender])
+        {
+            participated[msg.sender] = true;
+            participants.push(payable(msg.sender));
+        }
 
         placedBet[gameId][roundNumber][msg.sender] = true;
         bets[gameId][roundNumber][msg.sender] = Bet({betAmount: msg.value, betSignature: Signature({v: _v, r: _r, s: _s}), choiceBet: AvailableChoice.Invalid});
@@ -259,8 +270,23 @@ contract cryptoJengav3 is VRFConsumerBase, Ownable {
             // End the game
             game_state = GAME_STATE.CLOSED;
             randomness = _randomness;
-            emit RevealEnded(1);
+
+            gameWinner = participants[0];
+            uint256 highestBlocksWon = blocksWon[participants[0]];
+            for (uint i = 1; i < participants.length; i++)
+            {
+                if (blocksWon[participants[i]] > highestBlocksWon) {
+                    highestBlocksWon = blocksWon[participants[i]];
+                    gameWinner = participants[i];
+                }
+
+            }
+            
+            gameWinner.transfer(GameWinningPool[1]);
+
+            emit RevealEnded(CurrentRound);
             emit GameState("Closed");
+            emit GameEdned(gameWinner);
         } 
         else
         {
@@ -361,5 +387,13 @@ contract cryptoJengav3 is VRFConsumerBase, Ownable {
             return 0;
         }
         return ( RoundStartTime + RoundDuration) - block.timestamp;
+    }
+
+    function getTimeToNextRound() external view returns (uint256){
+        if (( RoundStartTime + RoundDuration + RevealDuration) < block.timestamp) 
+        {
+            return 0;
+        }
+        return ( RoundStartTime + RoundDuration + RevealDuration) - block.timestamp;
     }
 }
