@@ -1,3 +1,9 @@
+#game folders
+TowerStack/My\ Project/Library
+"TowerStack/My Project/Library"
+TowerStack/My Project/web3glbuilds
+TowerStack/My\ Project/web3glbuilds
+
 node_modules
 .env
 coverage
@@ -11,3 +17,6 @@ artifacts
 #db and upload folders
 Week4/db
 Week4/upload
+
+#game
+NodeServerV2/node_modules

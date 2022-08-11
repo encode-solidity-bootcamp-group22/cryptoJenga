@@ -1,0 +1,29 @@
+﻿<Properties StartupConfiguration="{F2690B0C-6D99-9988-CF67-3E4EC8197F5E}|">
+  <MonoDevelop.Ide.ItemProperties.endel.nativewebsocket PreferredExecutionTarget="e0f589f4-49ee-4d4d-941c-3e87843b313d" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/GameManager.cs">
+    <Files>
+      <File FileName="Assets/Web3Unity/Scripts/Scenes/WebLogin.cs" Line="64" Column="37" />
+      <File FileName="Assets/Web3Unity/Scripts/Contracts/CryptoJenga.cs" Line="22" Column="30" />
+      <File FileName="Assets/Web3Unity/Scripts/Prefabs/WebGL/WebGLSendTransactionExample.cs" Line="49" Column="26" />
+      <File FileName="Assets/Scripts/GameManager.cs" Line="294" Column="29" />
+      <File FileName="Assets/Scripts/Player.cs" Line="22" Column="17" />
+      <File FileName="Library/PackageCache/com.unity.visualscripting@1.5.2/Runtime/VisualScripting.Core/Ensure/EnsureThat.Objects.cs" Line="30" Column="1" />
+      <File FileName="Assets/Scripts/GameManagerHelper.cs" Line="7" Column="26" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.ItemProperties.Assembly-CSharp PreferredExecutionTarget="e1c08984-4ff1-4fdb-b252-5cde3d9ee983" />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore>
+      <Breakpoint enabled="false" file="/Users/edwardcox/crypto/encode/cryptoJenga/TowerStack/My project/Assets/Scripts/MainPage.cs" relfile="Assets/Scripts/MainPage.cs" line="77" column="1" />
+      <Breakpoint enabled="false" file="/Users/edwardcox/crypto/encode/cryptoJenga/TowerStack/My project/Assets/Scripts/MainPage.cs" relfile="Assets/Scripts/MainPage.cs" line="86" column="1" />
+      <Breakpoint enabled="false" file="/Users/edwardcox/crypto/encode/cryptoJenga/TowerStack/My project/Assets/Scripts/GameManager.cs" relfile="Assets/Scripts/GameManager.cs" line="312" column="1" />
+      <Breakpoint enabled="false" file="/Users/edwardcox/crypto/encode/cryptoJenga/TowerStack/My project/Assets/Scripts/GameManager.cs" relfile="Assets/Scripts/GameManager.cs" line="194" column="1" />
+      <Catchpoint exceptionName="System.Exception" includeSubclasses="True" />
+      <Breakpoint file="/Users/edwardcox/crypto/encode/cryptoJenga/TowerStack/My project/Assets/Scripts/GameManager.cs" relfile="Assets/Scripts/GameManager.cs" line="241" column="1" />
+      <Breakpoint file="/Users/edwardcox/crypto/encode/cryptoJenga/TowerStack/My project/Assets/Scripts/GameManager.cs" relfile="Assets/Scripts/GameManager.cs" line="297" column="1" />
+    </BreakpointStore>
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MultiItemStartupConfigurations />
+</Properties>
