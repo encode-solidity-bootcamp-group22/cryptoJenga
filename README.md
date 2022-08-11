@@ -1,9 +1,7 @@
 # CryptoJenga
-### This is a multiplayer betting game by allowing users to participate in round-by-round play where each round has specified duration (when game is created).
-<br>
+This is a multiplayer betting game by allowing users to participate in round-by-round play where each round has specified duration (when game is created).
 
-### The front-end is built using Unity game engine and there is a backend monitoring the events emitted by the smart contract.
-<br>
+The front-end is built using Unity game engine and there is a backend monitoring the events emitted by the smart contract.
 
 ### Chainlink features used
 - Price feed: the ticket price is in USD. The price feed is used for the conversion.
